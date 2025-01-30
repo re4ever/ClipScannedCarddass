@@ -1,36 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenCvSharp;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Reflection.Emit;
 using System.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
-using MS.WindowsAPICodePack.Internal;
-using System.Windows;
-using System.Windows.Shapes;
-using System.Windows.Media.Imaging;
 
-
-
-namespace ClipScannedCarddass
+namespace ScannedCardDenoiser
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private Thread th;
         string waifu2xExePath;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
+
+            waifu2xExePath = System.IO.Path.Combine(Environment.CurrentDirectory, "waifu2x-ncnn-vulkan\\waifu2x-ncnn-vulkan.exe");
+            if (!File.Exists(waifu2xExePath))
+            {
+                waifu2xExePath = null;
+            }
+            else
+            {
+                BTN_waifu2x.Text = waifu2xExePath;
+                BTN_waifu2x.Enabled = false;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -543,6 +543,12 @@ namespace ClipScannedCarddass
 
         private void Process(string filepath, string dstDirectory)
         {
+            Label_FileName.Invoke(new Action(() => 
+            {
+                Label_FileName.Visible = true;
+                Label_FileName.Text = filepath.Split('\\').Last();
+            }));
+            
             Mat Result = Process(filepath);
             if (Result == null)
             {
@@ -889,6 +895,11 @@ namespace ClipScannedCarddass
         private void ShowWarning()
         {
             System.Windows.Forms.MessageBox.Show("설정 값을 확인하세요.", "경고");
+        }
+
+        private void CB_AutoAdjust_CheckedChanged(object sender, EventArgs e)
+        {
+            TB_AdjThreshold.Enabled = CB_AutoAdjust.Checked;
         }
     }
 }

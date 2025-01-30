@@ -1,6 +1,6 @@
-﻿namespace ClipScannedCarddass
+﻿namespace ScannedCardDenoiser
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// 필수 디자이너 변수입니다.
@@ -98,6 +98,9 @@
             this.RB_WaifuHigh = new System.Windows.Forms.RadioButton();
             this.RB_WaifuMed = new System.Windows.Forms.RadioButton();
             this.RB_WaifuLow = new System.Windows.Forms.RadioButton();
+            this.Label_FileName = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -209,16 +212,16 @@
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.CB_DenoiseColor);
             this.groupBox1.Controls.Add(this.CB_AutoLevel);
-            this.groupBox1.Location = new System.Drawing.Point(249, 117);
+            this.groupBox1.Location = new System.Drawing.Point(14, 105);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(218, 283);
+            this.groupBox1.Size = new System.Drawing.Size(218, 249);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "이미지 보정";
             // 
             // TB_AdjThreshold
             // 
-            this.TB_AdjThreshold.Location = new System.Drawing.Point(151, 210);
+            this.TB_AdjThreshold.Location = new System.Drawing.Point(151, 214);
             this.TB_AdjThreshold.Name = "TB_AdjThreshold";
             this.TB_AdjThreshold.Size = new System.Drawing.Size(41, 21);
             this.TB_AdjThreshold.TabIndex = 11;
@@ -246,6 +249,7 @@
             this.CB_AutoAdjust.TabIndex = 9;
             this.CB_AutoAdjust.Text = "Auto Adjustment";
             this.CB_AutoAdjust.UseVisualStyleBackColor = true;
+            this.CB_AutoAdjust.CheckedChanged += new System.EventHandler(this.CB_AutoAdjust_CheckedChanged);
             // 
             // BTN_AutoLevelDefault
             // 
@@ -431,6 +435,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.label19);
+            this.groupBox2.Controls.Add(this.label18);
             this.groupBox2.Controls.Add(this.CB_CornerRounding);
             this.groupBox2.Controls.Add(this.CB_EdgeLine);
             this.groupBox2.Controls.Add(this.RB_ResizeTradingCard);
@@ -452,9 +458,9 @@
             this.groupBox2.Controls.Add(this.TB_CornerRounding);
             this.groupBox2.Controls.Add(this.TB_ClipRight);
             this.groupBox2.Controls.Add(this.TB_ClipTop);
-            this.groupBox2.Location = new System.Drawing.Point(14, 117);
+            this.groupBox2.Location = new System.Drawing.Point(249, 105);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(218, 321);
+            this.groupBox2.Size = new System.Drawing.Size(218, 303);
             this.groupBox2.TabIndex = 9;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "이미지 편집";
@@ -464,7 +470,7 @@
             this.CB_CornerRounding.AutoSize = true;
             this.CB_CornerRounding.Checked = true;
             this.CB_CornerRounding.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CB_CornerRounding.Location = new System.Drawing.Point(6, 290);
+            this.CB_CornerRounding.Location = new System.Drawing.Point(6, 282);
             this.CB_CornerRounding.Name = "CB_CornerRounding";
             this.CB_CornerRounding.Size = new System.Drawing.Size(100, 16);
             this.CB_CornerRounding.TabIndex = 8;
@@ -477,7 +483,7 @@
             this.CB_EdgeLine.AutoSize = true;
             this.CB_EdgeLine.Checked = true;
             this.CB_EdgeLine.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CB_EdgeLine.Location = new System.Drawing.Point(7, 267);
+            this.CB_EdgeLine.Location = new System.Drawing.Point(7, 259);
             this.CB_EdgeLine.Name = "CB_EdgeLine";
             this.CB_EdgeLine.Size = new System.Drawing.Size(100, 16);
             this.CB_EdgeLine.TabIndex = 8;
@@ -543,18 +549,19 @@
             // 
             this.TB_ResizeH.Location = new System.Drawing.Point(115, 42);
             this.TB_ResizeH.Name = "TB_ResizeH";
-            this.TB_ResizeH.Size = new System.Drawing.Size(60, 21);
+            this.TB_ResizeH.Size = new System.Drawing.Size(37, 21);
             this.TB_ResizeH.TabIndex = 5;
             this.TB_ResizeH.Text = "590";
             this.TB_ResizeH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_ResizeW
             // 
-            this.TB_ResizeW.Location = new System.Drawing.Point(34, 42);
+            this.TB_ResizeW.Location = new System.Drawing.Point(53, 42);
             this.TB_ResizeW.Name = "TB_ResizeW";
-            this.TB_ResizeW.Size = new System.Drawing.Size(60, 21);
+            this.TB_ResizeW.Size = new System.Drawing.Size(41, 21);
             this.TB_ResizeW.TabIndex = 5;
             this.TB_ResizeW.Text = "860";
+            this.TB_ResizeW.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_ResizeW.TextChanged += new System.EventHandler(this.TB_ResizeW_TextChanged);
             this.TB_ResizeW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -586,7 +593,7 @@
             // 
             this.label15.AutoSize = true;
             this.label15.Font = new System.Drawing.Font("굴림", 9F);
-            this.label15.Location = new System.Drawing.Point(164, 288);
+            this.label15.Location = new System.Drawing.Point(164, 280);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(15, 12);
             this.label15.TabIndex = 2;
@@ -626,7 +633,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("굴림", 9F);
-            this.label11.Location = new System.Drawing.Point(129, 213);
+            this.label11.Location = new System.Drawing.Point(129, 211);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(33, 12);
             this.label11.TabIndex = 2;
@@ -654,7 +661,7 @@
             // 
             // TB_CornerRounding
             // 
-            this.TB_CornerRounding.Location = new System.Drawing.Point(131, 285);
+            this.TB_CornerRounding.Location = new System.Drawing.Point(131, 277);
             this.TB_CornerRounding.Name = "TB_CornerRounding";
             this.TB_CornerRounding.Size = new System.Drawing.Size(30, 21);
             this.TB_CornerRounding.TabIndex = 4;
@@ -685,9 +692,9 @@
             // PB_Progress
             // 
             this.PB_Progress.Enabled = false;
-            this.PB_Progress.Location = new System.Drawing.Point(249, 424);
+            this.PB_Progress.Location = new System.Drawing.Point(14, 424);
             this.PB_Progress.Name = "PB_Progress";
-            this.PB_Progress.Size = new System.Drawing.Size(319, 14);
+            this.PB_Progress.Size = new System.Drawing.Size(554, 14);
             this.PB_Progress.TabIndex = 10;
             // 
             // Label_Progress
@@ -742,7 +749,7 @@
             this.groupBox3.Controls.Add(this.groupBox6);
             this.groupBox3.Controls.Add(this.CB_waifu2x);
             this.groupBox3.Controls.Add(this.groupBox4);
-            this.groupBox3.Location = new System.Drawing.Point(486, 117);
+            this.groupBox3.Location = new System.Drawing.Point(486, 105);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(264, 223);
             this.groupBox3.TabIndex = 14;
@@ -871,11 +878,44 @@
             this.RB_WaifuLow.Text = "Low";
             this.RB_WaifuLow.UseVisualStyleBackColor = true;
             // 
-            // Form1
+            // Label_FileName
+            // 
+            this.Label_FileName.AutoSize = true;
+            this.Label_FileName.Location = new System.Drawing.Point(13, 406);
+            this.Label_FileName.Name = "Label_FileName";
+            this.Label_FileName.Size = new System.Drawing.Size(108, 12);
+            this.Label_FileName.TabIndex = 15;
+            this.Label_FileName.Text = "filename.extention";
+            this.Label_FileName.Visible = false;
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label18.Location = new System.Drawing.Point(15, 41);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(32, 22);
+            this.label18.TabIndex = 9;
+            this.label18.Text = "Long\r\nside";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label19.Location = new System.Drawing.Point(159, 41);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(35, 22);
+            this.label19.TabIndex = 9;
+            this.label19.Text = "Short\r\nside";
+            this.label19.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 452);
+            this.Controls.Add(this.Label_FileName);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.BTN_ShowPreview);
             this.Controls.Add(this.CB_SubFolder);
@@ -892,7 +932,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.TB_Source);
             this.Controls.Add(this.BTN_OpenFile);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "Scanned Card Denoiser";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
@@ -982,6 +1022,9 @@
         private System.Windows.Forms.CheckBox CB_AutoAdjust;
         private System.Windows.Forms.TextBox TB_AdjThreshold;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label Label_FileName;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Label label18;
     }
 }
 

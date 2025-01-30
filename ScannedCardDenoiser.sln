@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipScannedCarddass", "ClipScannedCarddass.csproj", "{1AF12A02-9AE0-4E48-A2F1-82648EFE14B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScannedCardDenoiser", "ScannedCardDenoiser.csproj", "{1AF12A02-9AE0-4E48-A2F1-82648EFE14B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
