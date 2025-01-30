@@ -1,5 +1,7 @@
 # Scanned Card Denoiser
 ## 개요
+![ScannedCardDenoiser](https://github.com/user-attachments/assets/dba2763b-ab8b-4e48-aa73-fa0c912b5ed9)
+
 **Scanned Card Denoiser는 스캔한 트레이딩 카드 및 카드다스 이미지를 몇개의 파라미터 조정으로 대량의 이미지를 손쉽게 보정하는 목적으로 개발하는 프로그램입니다.**
 
 | Source | Result |
