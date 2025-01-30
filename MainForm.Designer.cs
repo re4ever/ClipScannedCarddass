@@ -60,6 +60,8 @@
             this.CB_DenoiseColor = new System.Windows.Forms.CheckBox();
             this.CB_AutoLevel = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label19 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
             this.CB_CornerRounding = new System.Windows.Forms.CheckBox();
             this.CB_EdgeLine = new System.Windows.Forms.CheckBox();
             this.RB_ResizeTradingCard = new System.Windows.Forms.RadioButton();
@@ -99,8 +101,6 @@
             this.RB_WaifuMed = new System.Windows.Forms.RadioButton();
             this.RB_WaifuLow = new System.Windows.Forms.RadioButton();
             this.Label_FileName = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -225,7 +225,7 @@
             this.TB_AdjThreshold.Name = "TB_AdjThreshold";
             this.TB_AdjThreshold.Size = new System.Drawing.Size(41, 21);
             this.TB_AdjThreshold.TabIndex = 11;
-            this.TB_AdjThreshold.Text = "200";
+            this.TB_AdjThreshold.Text = "50";
             this.TB_AdjThreshold.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_AdjThreshold.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -465,6 +465,28 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "이미지 편집";
             // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label19.Location = new System.Drawing.Point(159, 41);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(35, 22);
+            this.label19.TabIndex = 9;
+            this.label19.Text = "Short\r\nside";
+            this.label19.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label18.Location = new System.Drawing.Point(15, 41);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(32, 22);
+            this.label18.TabIndex = 9;
+            this.label18.Text = "Long\r\nside";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // CB_CornerRounding
             // 
             this.CB_CornerRounding.AutoSize = true;
@@ -472,9 +494,9 @@
             this.CB_CornerRounding.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CB_CornerRounding.Location = new System.Drawing.Point(6, 282);
             this.CB_CornerRounding.Name = "CB_CornerRounding";
-            this.CB_CornerRounding.Size = new System.Drawing.Size(100, 16);
+            this.CB_CornerRounding.Size = new System.Drawing.Size(88, 16);
             this.CB_CornerRounding.TabIndex = 8;
-            this.CB_CornerRounding.Text = "모서리 라운딩";
+            this.CB_CornerRounding.Text = "코너 라운딩";
             this.CB_CornerRounding.UseVisualStyleBackColor = true;
             this.CB_CornerRounding.CheckedChanged += new System.EventHandler(this.CB_CornerRounding_CheckedChanged);
             // 
@@ -583,9 +605,9 @@
             this.CB_Clip.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CB_Clip.Location = new System.Drawing.Point(6, 164);
             this.CB_Clip.Name = "CB_Clip";
-            this.CB_Clip.Size = new System.Drawing.Size(88, 16);
+            this.CB_Clip.Size = new System.Drawing.Size(100, 16);
             this.CB_Clip.TabIndex = 0;
-            this.CB_Clip.Text = "여백 자르기";
+            this.CB_Clip.Text = "모서리 자르기";
             this.CB_Clip.UseVisualStyleBackColor = true;
             this.CB_Clip.CheckedChanged += new System.EventHandler(this.CB_Clip_CheckedChanged);
             // 
@@ -887,28 +909,6 @@
             this.Label_FileName.TabIndex = 15;
             this.Label_FileName.Text = "filename.extention";
             this.Label_FileName.Visible = false;
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label18.Location = new System.Drawing.Point(15, 41);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(32, 22);
-            this.label18.TabIndex = 9;
-            this.label18.Text = "Long\r\nside";
-            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label19.Location = new System.Drawing.Point(159, 41);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(35, 22);
-            this.label19.TabIndex = 9;
-            this.label19.Text = "Short\r\nside";
-            this.label19.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // MainForm
             // 

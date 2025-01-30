@@ -168,7 +168,7 @@ namespace ScannedCardDenoiser
 
         private void BTN_Execute_Click(object sender, EventArgs e)
         {
-            if (waifu2xExePath == null)
+            if (CB_waifu2x.Checked && waifu2xExePath == null)
             {
                 if (!LinkWaifu2X())
                     return;
@@ -176,6 +176,7 @@ namespace ScannedCardDenoiser
 
             BTN_Execute.Enabled = false;
             BTN_Abort.Enabled = true;
+            PB_Progress.Value = 0;
 
             if (th != null)
             {
@@ -323,60 +324,63 @@ namespace ScannedCardDenoiser
                 Mat EdgeImage = new Mat();
                 Cv2.CvtColor(image, EdgeImage, ColorConversionCodes.RGB2GRAY);
                 Cv2.Threshold(EdgeImage, EdgeImage, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
-                Cv2.Canny(EdgeImage, EdgeImage, 50, 100);
+                Cv2.Canny(EdgeImage, EdgeImage, 10, 50);
+
+                Cv2.ImShow("Lines", EdgeImage);
+                Cv2.WaitKey(0);
 
                 LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 1, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 12, imageSize.Width / 150);
 
                 EdgeImage.Dispose();
+
+                Mat LineImage = new Mat();
+                Cv2.CopyTo(image, LineImage);
 
                 List<double> angles = new List<double>();
                 foreach (LineSegmentPoint Line in Lines)
                 {
                     double angle = Math.Atan2(Line.P2.Y - Line.P1.Y, Line.P2.X - Line.P1.X);
                     angles.Add(angle);
+
+                    LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255));
                 }
+
+                Cv2.ImShow("Lines", LineImage);
+                Cv2.WaitKey(0);
 
                 double maxSkewRad1 = 45 * Cv2.PI / 180;
                 double maxSkewRad2 = -45 * Cv2.PI / 180;
 
-                List<double> horizontalLineAngle = new List<double>();
-                List<double> verticalLineAngle = new List<double>();
+                List<double> AdjustedAngles = new List<double>();
                 foreach (double angle in angles)
                 {
                     if (maxSkewRad1 < angle || angle < maxSkewRad2)
-                        verticalLineAngle.Add(angle);
-                    else
-                        horizontalLineAngle.Add(angle);
-                }
-
-                double avgAngle = 0;
-                if (horizontalLineAngle.Count > 0)
-                {
-                    foreach (double angle in horizontalLineAngle)
                     {
-                        avgAngle += angle;
-                    }
-
-                    avgAngle /= horizontalLineAngle.Count;
-                }
-                else if (verticalLineAngle.Count > 0)
-                {
-                    foreach (double angle in verticalLineAngle)
-                    {
-                        avgAngle += angle;
-                    }
-
-                    avgAngle /= verticalLineAngle.Count;
-                    if (avgAngle < 0)
-                        avgAngle += Cv2.PI / 2;
+                        if (angle < 0)
+                            AdjustedAngles.Add(angle + Cv2.PI / 2);
+                        else
+                            AdjustedAngles.Add(angle - Cv2.PI / 2);
+                    }                        
                     else
-                        avgAngle -= Cv2.PI / 2;
+                        AdjustedAngles.Add(angle);
                 }
-                avgAngle = avgAngle * 180 / Cv2.PI;
 
-                if (avgAngle != 0)
+                List<double> filteredAngles = new List<double>();
+                double meanAngle = AdjustedAngles.Average();
+                double thresholdAngle = (5 * Cv2.PI / 180) * (5 * Cv2.PI / 180);
+                foreach (double angle in AdjustedAngles)
                 {
-                    Mat RotMat = Cv2.GetRotationMatrix2D(new Point2f(imageSize.Width * 0.5f, imageSize.Height * 0.5f), avgAngle, 1.0);
+                    if (thresholdAngle > (angle - meanAngle) * (angle - meanAngle))
+                    {
+                        filteredAngles.Add(angle);
+                    }
+                }
+
+                double rotAngle = filteredAngles.Average() * 180 /Cv2.PI;
+
+                if (rotAngle != 0)
+                {
+                    Mat RotMat = Cv2.GetRotationMatrix2D(new Point2f(imageSize.Width * 0.5f, imageSize.Height * 0.5f), rotAngle, 1.0);
                     Cv2.WarpAffine(image, image, RotMat, new OpenCvSharp.Size(imageSize.Width, imageSize.Height), InterpolationFlags.Lanczos4, BorderTypes.Replicate);
                 }
 
@@ -754,6 +758,10 @@ namespace ScannedCardDenoiser
             if (CB_DenoiseColor.Checked)
             {
                 Title += "[Denoise:" + TB_DenoiseH.Text + "_" + TB_DenoiseHColor.Text + "_" + TB_DenoiseTSize.Text + "_" + TB_DenoiseSSize.Text + "]";
+            }
+            if (CB_AutoAdjust.Checked)
+            {
+                Title += "[AutoAdjust:" + TB_AdjThreshold.Text + "]";
             }
 
             Mat tmpImage = Process(TB_Source.Text);
