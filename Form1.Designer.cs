@@ -38,6 +38,9 @@
             this.BTN_TargetFolder = new System.Windows.Forms.Button();
             this.BTN_Execute = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.TB_AdjThreshold = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.CB_AutoAdjust = new System.Windows.Forms.CheckBox();
             this.BTN_AutoLevelDefault = new System.Windows.Forms.Button();
             this.BTN_DenoiseDefault = new System.Windows.Forms.Button();
             this.TB_DenoiseSSize = new System.Windows.Forms.TextBox();
@@ -185,6 +188,9 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.TB_AdjThreshold);
+            this.groupBox1.Controls.Add(this.label14);
+            this.groupBox1.Controls.Add(this.CB_AutoAdjust);
             this.groupBox1.Controls.Add(this.BTN_AutoLevelDefault);
             this.groupBox1.Controls.Add(this.BTN_DenoiseDefault);
             this.groupBox1.Controls.Add(this.TB_DenoiseSSize);
@@ -205,10 +211,41 @@
             this.groupBox1.Controls.Add(this.CB_AutoLevel);
             this.groupBox1.Location = new System.Drawing.Point(249, 117);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(218, 197);
+            this.groupBox1.Size = new System.Drawing.Size(218, 283);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "이미지 보정";
+            // 
+            // TB_AdjThreshold
+            // 
+            this.TB_AdjThreshold.Location = new System.Drawing.Point(151, 210);
+            this.TB_AdjThreshold.Name = "TB_AdjThreshold";
+            this.TB_AdjThreshold.Size = new System.Drawing.Size(41, 21);
+            this.TB_AdjThreshold.TabIndex = 11;
+            this.TB_AdjThreshold.Text = "200";
+            this.TB_AdjThreshold.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.TB_AdjThreshold.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(84, 218);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(62, 12);
+            this.label14.TabIndex = 10;
+            this.label14.Text = "Threshold";
+            // 
+            // CB_AutoAdjust
+            // 
+            this.CB_AutoAdjust.AutoSize = true;
+            this.CB_AutoAdjust.Checked = true;
+            this.CB_AutoAdjust.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CB_AutoAdjust.Location = new System.Drawing.Point(7, 198);
+            this.CB_AutoAdjust.Name = "CB_AutoAdjust";
+            this.CB_AutoAdjust.Size = new System.Drawing.Size(116, 16);
+            this.CB_AutoAdjust.TabIndex = 9;
+            this.CB_AutoAdjust.Text = "Auto Adjustment";
+            this.CB_AutoAdjust.UseVisualStyleBackColor = true;
             // 
             // BTN_AutoLevelDefault
             // 
@@ -238,7 +275,7 @@
             this.TB_DenoiseSSize.TabIndex = 7;
             this.TB_DenoiseSSize.Text = "21";
             this.TB_DenoiseSSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_DenoiseSSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_DenoiseSSize_KeyPressed);
+            this.TB_DenoiseSSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_DenoiseTSize
             // 
@@ -248,7 +285,7 @@
             this.TB_DenoiseTSize.TabIndex = 7;
             this.TB_DenoiseTSize.Text = "27";
             this.TB_DenoiseTSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_DenoiseTSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_DenoiseTSize_KeyPressed);
+            this.TB_DenoiseTSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_DenoiseHColor
             // 
@@ -258,7 +295,7 @@
             this.TB_DenoiseHColor.TabIndex = 7;
             this.TB_DenoiseHColor.Text = "3";
             this.TB_DenoiseHColor.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_DenoiseHColor.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_DenoiseHColor_KeyPressed);
+            this.TB_DenoiseHColor.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_DenoiseH
             // 
@@ -268,7 +305,7 @@
             this.TB_DenoiseH.TabIndex = 7;
             this.TB_DenoiseH.Text = "3";
             this.TB_DenoiseH.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_DenoiseH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_DenoiseH_KeyPressed);
+            this.TB_DenoiseH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // label8
             // 
@@ -314,7 +351,7 @@
             this.TB_AutoLevelMax.TabIndex = 5;
             this.TB_AutoLevelMax.Text = "0";
             this.TB_AutoLevelMax.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_AutoLevelMax.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_AutoLevelMax_KeyPressed);
+            this.TB_AutoLevelMax.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // label17
             // 
@@ -344,7 +381,7 @@
             this.TB_AutoLevelMin.TabIndex = 4;
             this.TB_AutoLevelMin.Text = "5";
             this.TB_AutoLevelMin.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_AutoLevelMin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_AutoLevelMin_KeyPressed);
+            this.TB_AutoLevelMin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // label4
             // 
@@ -509,7 +546,7 @@
             this.TB_ResizeH.Size = new System.Drawing.Size(60, 21);
             this.TB_ResizeH.TabIndex = 5;
             this.TB_ResizeH.Text = "590";
-            this.TB_ResizeH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ResizeH_KeyPressed);
+            this.TB_ResizeH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_ResizeW
             // 
@@ -519,7 +556,7 @@
             this.TB_ResizeW.TabIndex = 5;
             this.TB_ResizeW.Text = "860";
             this.TB_ResizeW.TextChanged += new System.EventHandler(this.TB_ResizeW_TextChanged);
-            this.TB_ResizeW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ResizeW_KeyPressed);
+            this.TB_ResizeW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // CB_ChangeSize
             // 
@@ -573,7 +610,7 @@
             this.TB_ClipLeft.TabIndex = 4;
             this.TB_ClipLeft.Text = "5";
             this.TB_ClipLeft.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_ClipLeft.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ClipLeft_KeyPressed);
+            this.TB_ClipLeft.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // label12
             // 
@@ -613,7 +650,7 @@
             this.TB_ClipBottom.TabIndex = 4;
             this.TB_ClipBottom.Text = "5";
             this.TB_ClipBottom.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_ClipBottom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ClipBottom_KeyPressed);
+            this.TB_ClipBottom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_CornerRounding
             // 
@@ -623,7 +660,7 @@
             this.TB_CornerRounding.TabIndex = 4;
             this.TB_CornerRounding.Text = "4";
             this.TB_CornerRounding.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_CornerRounding.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_CornerRounding_KeyPressed);
+            this.TB_CornerRounding.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_ClipRight
             // 
@@ -633,7 +670,7 @@
             this.TB_ClipRight.TabIndex = 4;
             this.TB_ClipRight.Text = "5";
             this.TB_ClipRight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_ClipRight.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ClipRight_KeyPressed);
+            this.TB_ClipRight.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // TB_ClipTop
             // 
@@ -643,7 +680,7 @@
             this.TB_ClipTop.TabIndex = 4;
             this.TB_ClipTop.Text = "5";
             this.TB_ClipTop.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.TB_ClipTop.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_ClipTop_KeyPressed);
+            this.TB_ClipTop.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
             // PB_Progress
             // 
@@ -942,6 +979,9 @@
         private System.Windows.Forms.CheckBox CB_waifu2x;
         private System.Windows.Forms.RadioButton RB_WaifuPhoto;
         private System.Windows.Forms.Button BTN_waifu2x;
+        private System.Windows.Forms.CheckBox CB_AutoAdjust;
+        private System.Windows.Forms.TextBox TB_AdjThreshold;
+        private System.Windows.Forms.Label label14;
     }
 }
 

@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenCvSharp;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection.Emit;
@@ -16,6 +15,9 @@ using System.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
 using MS.WindowsAPICodePack.Internal;
+using System.Windows;
+using System.Windows.Shapes;
+using System.Windows.Media.Imaging;
 
 
 
@@ -307,11 +309,113 @@ namespace ClipScannedCarddass
             if (!File.Exists(filepath))
                 return null;
 
-            Image image = Image.FromFile(filepath);
+            Mat image = Cv2.ImRead(filepath);
             if (image == null)
                 return null;
 
-            System.Drawing.Size imageSize = image.Size;
+            Cv2.CvtColor(image, image, ColorConversionCodes.RGB2RGBA);
+            OpenCvSharp.Size imageSize = new OpenCvSharp.Size(image.Cols, image.Rows);
+
+            if (CB_AutoAdjust.Checked)
+            {
+                Cv2.CvtColor(image, image, ColorConversionCodes.RGBA2RGB);
+
+                Mat EdgeImage = new Mat();
+                Cv2.CvtColor(image, EdgeImage, ColorConversionCodes.RGB2GRAY);
+                Cv2.Threshold(EdgeImage, EdgeImage, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
+                Cv2.Canny(EdgeImage, EdgeImage, 50, 100);
+
+                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 1, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 12, imageSize.Width / 150);
+
+                EdgeImage.Dispose();
+
+                List<double> angles = new List<double>();
+                foreach (LineSegmentPoint Line in Lines)
+                {
+                    double angle = Math.Atan2(Line.P2.Y - Line.P1.Y, Line.P2.X - Line.P1.X);
+                    angles.Add(angle);
+                }
+
+                double maxSkewRad1 = 45 * Cv2.PI / 180;
+                double maxSkewRad2 = -45 * Cv2.PI / 180;
+
+                List<double> horizontalLineAngle = new List<double>();
+                List<double> verticalLineAngle = new List<double>();
+                foreach (double angle in angles)
+                {
+                    if (maxSkewRad1 < angle || angle < maxSkewRad2)
+                        verticalLineAngle.Add(angle);
+                    else
+                        horizontalLineAngle.Add(angle);
+                }
+
+                double avgAngle = 0;
+                if (horizontalLineAngle.Count > 0)
+                {
+                    foreach (double angle in horizontalLineAngle)
+                    {
+                        avgAngle += angle;
+                    }
+
+                    avgAngle /= horizontalLineAngle.Count;
+                }
+                else if (verticalLineAngle.Count > 0)
+                {
+                    foreach (double angle in verticalLineAngle)
+                    {
+                        avgAngle += angle;
+                    }
+
+                    avgAngle /= verticalLineAngle.Count;
+                    if (avgAngle < 0)
+                        avgAngle += Cv2.PI / 2;
+                    else
+                        avgAngle -= Cv2.PI / 2;
+                }
+                avgAngle = avgAngle * 180 / Cv2.PI;
+
+                if (avgAngle != 0)
+                {
+                    Mat RotMat = Cv2.GetRotationMatrix2D(new Point2f(imageSize.Width * 0.5f, imageSize.Height * 0.5f), avgAngle, 1.0);
+                    Cv2.WarpAffine(image, image, RotMat, new OpenCvSharp.Size(imageSize.Width, imageSize.Height), InterpolationFlags.Lanczos4, BorderTypes.Replicate);
+                }
+
+                int Top = imageSize.Height; int Bottom = 0; int Left = imageSize.Width; int Right = 0;
+
+                Mat[] BinaryImages;                
+                Cv2.Split(image, out BinaryImages);
+                foreach (Mat BinaryImage in BinaryImages)
+                {
+                    Cv2.FastNlMeansDenoising(BinaryImage, BinaryImage);
+                    Cv2.Canny(BinaryImage, BinaryImage, 100, 200);
+
+                    Cv2.Threshold(BinaryImage, BinaryImage, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+
+                    for (int i = 0; i < imageSize.Width * imageSize.Height; ++i)
+                    {
+                        unsafe
+                        {
+                            if (*(byte*)IntPtr.Add(BinaryImage.Data, i).ToPointer() != 0)
+                            {
+                                int HeightIdx = i / imageSize.Width;
+                                int WidthIdx = i % imageSize.Width;
+
+                                if (HeightIdx < Top) Top = HeightIdx;
+                                if (Bottom < HeightIdx) Bottom = HeightIdx;
+                                if (WidthIdx < Left) Left = WidthIdx;
+                                if (Right < WidthIdx) Right = WidthIdx;
+                            }
+                        }
+                    }
+
+                    BinaryImage.Dispose();
+                }
+                
+                image = image.GetRectSubPix(new OpenCvSharp.Size(Right - Left, Bottom - Top), new OpenCvSharp.Point((Right + Left) * 0.5f, (Bottom + Top) * 0.5f));
+                Cv2.CvtColor(image, image, ColorConversionCodes.RGB2RGBA);
+                imageSize = new OpenCvSharp.Size(image.Cols, image.Rows);
+            }
+
             bool bHorizontal = imageSize.Width > imageSize.Height;
 
             int X = CB_ChangeSize.Checked ? Convert.ToInt32(TB_ResizeW.Text) : imageSize.Width;
@@ -323,7 +427,7 @@ namespace ClipScannedCarddass
             if (X * Y > 268435456)
                 return null;
 
-            System.Drawing.Size size = new System.Drawing.Size(bHorizontal ? X : Y, bHorizontal ? Y : X);
+            OpenCvSharp.Size size = new OpenCvSharp.Size(X, Y);
 
             int ClipTop = 0, ClipBottom = 0, ClipLeft = 0, ClipRight = 0;
             if (CB_Clip.Checked)
@@ -343,13 +447,8 @@ namespace ClipScannedCarddass
             size.Width += ClipLeft + ClipRight;
             size.Height += ClipTop + ClipBottom;
 
-            Bitmap srcBitmap = new Bitmap(image, size);
-            image.Dispose();
-
-            Rectangle srcRect = new Rectangle(0, 0, size.Width, size.Height);
-            BitmapData srcBitmapData = srcBitmap.LockBits(srcRect, ImageLockMode.ReadOnly, PixelFormat.Format32bppRgb);
-
-            Mat Original = Mat.FromPixelData(srcBitmap.Height, srcBitmap.Width, MatType.CV_8UC4, srcBitmapData.Scan0);
+            Mat Original = new Mat();
+            Cv2.Resize(image, Original, size);
 
             Mat After = new Mat();
             if (CB_DenoiseColor.Checked)
@@ -378,15 +477,11 @@ namespace ClipScannedCarddass
                 Cv2.CopyTo(After, AutoLevelSrc);
             }
 
-            srcBitmap.UnlockBits(srcBitmapData);
-            srcBitmap.Dispose();
+            OpenCvSharp.Size ResultSize = new OpenCvSharp.Size(size.Width - ClipLeft - ClipRight, size.Height - ClipTop - ClipBottom);
+            Mat Result = new Mat(ResultSize, MatType.CV_8UC4);
 
-            Bitmap dstBitmap = new Bitmap(size.Width - ClipLeft - ClipRight, size.Height - ClipTop - ClipBottom, PixelFormat.Format32bppArgb);
-            Rectangle dstRect = new Rectangle(0, 0, size.Width - ClipLeft - ClipRight, size.Height - ClipTop - ClipBottom);
-            BitmapData dstBitmapData = dstBitmap.LockBits(dstRect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-
-            IntPtr pSrcBitmap = srcBitmapData.Scan0;
-            IntPtr pDstBitmap = dstBitmapData.Scan0;
+            IntPtr pSrcBitmap = Original.Data;
+            IntPtr pDstBitmap = Result.Data;
 
             bool bCornerRounding = CB_CornerRounding.Checked;
             bool bEdgeLine = CB_EdgeLine.Checked;
@@ -440,12 +535,8 @@ namespace ClipScannedCarddass
                 }
             }
 
-            Mat Result = new Mat();
-            Cv2.CopyTo(Mat.FromPixelData(dstBitmap.Size.Height, dstBitmap.Size.Width, MatType.CV_8UC4, dstBitmapData.Scan0), Result);
-
-            dstBitmap.UnlockBits(dstBitmapData);
+            Original.Dispose();
             AutoLevelSrc.Dispose();
-            dstBitmap.Dispose();
 
             return Result;
         }
@@ -612,7 +703,7 @@ namespace ClipScannedCarddass
             return dst;
         }
 
-        private bool IsOutside(int WidthIdx, int HeightIdx, System.Drawing.Size size, int ClipTop, int ClipBottom, int ClipLeft, int ClipRight, int circleRadius)
+        private bool IsOutside(int WidthIdx, int HeightIdx, OpenCvSharp.Size size, int ClipTop, int ClipBottom, int ClipLeft, int ClipRight, int circleRadius)
         {
             return (WidthIdx < circleRadius && HeightIdx < circleRadius && Math.Sqrt((WidthIdx - circleRadius - ClipLeft) * (WidthIdx - circleRadius - ClipLeft) + (HeightIdx - circleRadius - ClipTop) * (HeightIdx - circleRadius - ClipTop)) > circleRadius) ||
                          (WidthIdx > size.Width - circleRadius && HeightIdx < circleRadius && Math.Sqrt((WidthIdx - size.Width + circleRadius + ClipRight) * (WidthIdx - size.Width + circleRadius + ClipRight) + (HeightIdx - circleRadius - ClipTop) * (HeightIdx - circleRadius - ClipTop)) > circleRadius) ||
@@ -781,105 +872,9 @@ namespace ClipScannedCarddass
             return false;
         }
 
-        private void TB_ResizeW_KeyPressed(object sender, KeyPressEventArgs e)
+        private void TB_OnlyDigit_KeyPressed(object sender, KeyPressEventArgs e)
         {
             //숫자와 백스페이스만 입력
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_ResizeH_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_ClipTop_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_ClipLeft_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_ClipRight_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_ClipBottom_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_CornerRounding_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_AutoLevelMin_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_AutoLevelMax_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_DenoiseH_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_DenoiseHColor_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_DenoiseTSize_KeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TB_DenoiseSSize_KeyPressed(object sender, KeyPressEventArgs e)
-        {
             if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))
             {
                 e.Handled = true;
@@ -893,7 +888,7 @@ namespace ClipScannedCarddass
 
         private void ShowWarning()
         {
-            MessageBox.Show("설정 값을 확인하세요.", "경고");
+            System.Windows.Forms.MessageBox.Show("설정 값을 확인하세요.", "경고");
         }
     }
 }
