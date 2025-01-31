@@ -101,6 +101,7 @@
             this.RB_WaifuMed = new System.Windows.Forms.RadioButton();
             this.RB_WaifuLow = new System.Windows.Forms.RadioButton();
             this.Label_FileName = new System.Windows.Forms.Label();
+            this.CB_Waifu2xTTA = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -790,6 +791,7 @@
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.CB_Waifu2xTTA);
             this.groupBox6.Controls.Add(this.RB_WaifuPhoto);
             this.groupBox6.Controls.Add(this.RB_WaifuAnime);
             this.groupBox6.Controls.Add(this.RB_WaifuCunet);
@@ -910,6 +912,18 @@
             this.Label_FileName.Text = "filename.extention";
             this.Label_FileName.Visible = false;
             // 
+            // CB_Waifu2xTTA
+            // 
+            this.CB_Waifu2xTTA.AutoSize = true;
+            this.CB_Waifu2xTTA.Checked = true;
+            this.CB_Waifu2xTTA.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CB_Waifu2xTTA.Location = new System.Drawing.Point(156, 63);
+            this.CB_Waifu2xTTA.Name = "CB_Waifu2xTTA";
+            this.CB_Waifu2xTTA.Size = new System.Drawing.Size(88, 16);
+            this.CB_Waifu2xTTA.TabIndex = 1;
+            this.CB_Waifu2xTTA.Text = "TTA 활성화";
+            this.CB_Waifu2xTTA.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1025,6 +1039,7 @@
         private System.Windows.Forms.Label Label_FileName;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.CheckBox CB_Waifu2xTTA;
     }
 }
 

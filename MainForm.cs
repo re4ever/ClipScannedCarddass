@@ -225,7 +225,7 @@ namespace ScannedCardDenoiser
             }
             else
             {
-                BTN_Execute.Enabled |= true;
+                BTN_Execute.Enabled &= true;
                 BTN_Abort.Enabled = false;
             }
         }
@@ -326,28 +326,35 @@ namespace ScannedCardDenoiser
                 Cv2.Threshold(EdgeImage, EdgeImage, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
                 Cv2.Canny(EdgeImage, EdgeImage, 10, 50);
 
-                Cv2.ImShow("Lines", EdgeImage);
+#if DEBUG
+                string newFileName = filepath.Split('\\').Last().Split('.')[0];
+                Cv2.ImShow("Edge", EdgeImage);
                 Cv2.WaitKey(0);
 
+                Cv2.ImWrite(newFileName + "_Edges.png", EdgeImage);
+#endif
                 LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 1, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 12, imageSize.Width / 150);
 
                 EdgeImage.Dispose();
-
+#if DEBUG
                 Mat LineImage = new Mat();
                 Cv2.CopyTo(image, LineImage);
-
+#endif
                 List<double> angles = new List<double>();
                 foreach (LineSegmentPoint Line in Lines)
                 {
                     double angle = Math.Atan2(Line.P2.Y - Line.P1.Y, Line.P2.X - Line.P1.X);
                     angles.Add(angle);
-
-                    LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255));
+#if DEBUG
+                    LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255), 3);
+#endif
                 }
-
+#if DEBUG
                 Cv2.ImShow("Lines", LineImage);
                 Cv2.WaitKey(0);
 
+                Cv2.ImWrite(newFileName + "_Lines.png", LineImage);
+#endif
                 double maxSkewRad1 = 45 * Cv2.PI / 180;
                 double maxSkewRad2 = -45 * Cv2.PI / 180;
 
@@ -414,7 +421,19 @@ namespace ScannedCardDenoiser
 
                     BinaryImage.Dispose();
                 }
-                
+
+#if DEBUG
+                Mat RectImage = new Mat();
+                Cv2.CopyTo(image, RectImage);
+
+                RectImage.Rectangle(new OpenCvSharp.Point(Left, Top), new OpenCvSharp.Point(Right, Bottom), new Scalar(255, 0, 255), 3);
+
+                Cv2.ImShow("Rect", RectImage);
+                Cv2.WaitKey(0);
+
+                Cv2.ImWrite(newFileName + "_Rect.png", RectImage);
+#endif
+
                 image = image.GetRectSubPix(new OpenCvSharp.Size(Right - Left, Bottom - Top), new OpenCvSharp.Point((Right + Left) * 0.5f, (Bottom + Top) * 0.5f));
                 Cv2.CvtColor(image, image, ColorConversionCodes.RGB2RGBA);
                 imageSize = new OpenCvSharp.Size(image.Cols, image.Rows);
@@ -595,8 +614,10 @@ namespace ScannedCardDenoiser
                 else if (RB_WaifuHighest.Checked)
                     denoiseLevel += "3";
 
-
                 ps.StartInfo.Arguments = "-i " + newFileName + " -o " + newFileName + modelPath + denoiseLevel + " -s 2";
+
+                if (CB_Waifu2xTTA.Checked)
+                    ps.StartInfo.Arguments += " -x";
 
                 ps.Start();
                 ps.WaitForExit();
