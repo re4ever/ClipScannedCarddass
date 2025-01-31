@@ -9,9 +9,15 @@ using System.IO;
 using System.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
+using MS.WindowsAPICodePack.Internal;
 
 namespace ScannedCardDenoiser
 {
+    enum EErrorType
+    {
+        WrongProperty,
+        ErrorWaifu2x
+    }
     public partial class MainForm : Form
     {
         private Thread th;
@@ -331,59 +337,63 @@ namespace ScannedCardDenoiser
                 Cv2.ImShow("Edge", EdgeImage);
                 Cv2.WaitKey(0);
 
-                Cv2.ImWrite(newFileName + "_Edges.png", EdgeImage);
+                Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Edges.png"), EdgeImage);
 #endif
-                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 1, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 12, imageSize.Width / 150);
-
+                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 5, imageSize.Width / 100);
+                
                 EdgeImage.Dispose();
 #if DEBUG
                 Mat LineImage = new Mat();
                 Cv2.CopyTo(image, LineImage);
 #endif
-                List<double> angles = new List<double>();
+                double maxSkewRad1 = 45 * Cv2.PI / 180;
+                double maxSkewRad2 = -45 * Cv2.PI / 180;
+
+                double weightedAngles = 0;
+                double weight = 0;
+
+                List<double> AdjustedAngles = new List<double>();
                 foreach (LineSegmentPoint Line in Lines)
                 {
                     double angle = Math.Atan2(Line.P2.Y - Line.P1.Y, Line.P2.X - Line.P1.X);
-                    angles.Add(angle);
+
+                    if (maxSkewRad1 < angle || angle < maxSkewRad2)
+                    {
+                        if (angle < 0)
+                            angle = angle + Cv2.PI / 2;
+                        else
+                            angle = angle - Cv2.PI / 2;
+                    }
+                    
+                    AdjustedAngles.Add(angle);
+
+                    double length = Line.P1.DistanceTo(Line.P2) - imageSize.Width / 5;
+                    length *= length;
+                    weight += length;
+                    weightedAngles += length * angle;
 #if DEBUG
                     LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255), 3);
 #endif
-                }
+                }                
 #if DEBUG
                 Cv2.ImShow("Lines", LineImage);
                 Cv2.WaitKey(0);
 
-                Cv2.ImWrite(newFileName + "_Lines.png", LineImage);
+                Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Lines.png"), LineImage);
 #endif
-                double maxSkewRad1 = 45 * Cv2.PI / 180;
-                double maxSkewRad2 = -45 * Cv2.PI / 180;
-
-                List<double> AdjustedAngles = new List<double>();
-                foreach (double angle in angles)
-                {
-                    if (maxSkewRad1 < angle || angle < maxSkewRad2)
-                    {
-                        if (angle < 0)
-                            AdjustedAngles.Add(angle + Cv2.PI / 2);
-                        else
-                            AdjustedAngles.Add(angle - Cv2.PI / 2);
-                    }                        
-                    else
-                        AdjustedAngles.Add(angle);
-                }
 
                 List<double> filteredAngles = new List<double>();
-                double meanAngle = AdjustedAngles.Average();
+                double weightedMeanAngle = weightedAngles / weight;
                 double thresholdAngle = (5 * Cv2.PI / 180) * (5 * Cv2.PI / 180);
                 foreach (double angle in AdjustedAngles)
                 {
-                    if (thresholdAngle > (angle - meanAngle) * (angle - meanAngle))
+                    if (thresholdAngle > (angle - weightedMeanAngle) * (angle - weightedMeanAngle))
                     {
                         filteredAngles.Add(angle);
                     }
                 }
 
-                double rotAngle = filteredAngles.Average() * 180 /Cv2.PI;
+                double rotAngle = filteredAngles.Count() > 0 ? filteredAngles.Average() * 180 /Cv2.PI : 0;
 
                 if (rotAngle != 0)
                 {
@@ -431,7 +441,7 @@ namespace ScannedCardDenoiser
                 Cv2.ImShow("Rect", RectImage);
                 Cv2.WaitKey(0);
 
-                Cv2.ImWrite(newFileName + "_Rect.png", RectImage);
+                Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Rect.png"), RectImage);
 #endif
 
                 image = image.GetRectSubPix(new OpenCvSharp.Size(Right - Left, Bottom - Top), new OpenCvSharp.Point((Right + Left) * 0.5f, (Bottom + Top) * 0.5f));
@@ -585,8 +595,7 @@ namespace ScannedCardDenoiser
                 File.Delete(newFileName);
             }
 
-            Cv2.ImWrite(newFileName, Result);
-            Result.Dispose();
+            Cv2.ImWrite(newFileName, Result);            
 
             if (CB_waifu2x.Checked)
             {
@@ -622,15 +631,27 @@ namespace ScannedCardDenoiser
                 ps.Start();
                 ps.WaitForExit();
 
-                Image image = Image.FromFile(newFileName);
-                System.Drawing.Size imageSize = image.Size;
-                imageSize.Width = imageSize.Width / 2;
-                imageSize.Height = imageSize.Height / 2;
-                Bitmap newImage = new Bitmap(image, imageSize);
-                image.Dispose();
+                if (File.Exists(newFileName))
+                {
+                    Image image = Image.FromFile(newFileName);
+                    System.Drawing.Size imageSize = image.Size;
+                    if (imageSize.Width > Result.Width)
+                        imageSize.Width = imageSize.Width / 2;
+                    if (imageSize.Height > Result.Height)
+                        imageSize.Height = imageSize.Height / 2;
 
-                newImage.Save(newFileName, ImageFormat.Png);
+                    Bitmap newImage = new Bitmap(image, imageSize);
+                    image.Dispose();
+
+                    newImage.Save(newFileName, ImageFormat.Png);
+                }
+                else
+                {
+                    ShowWarning(EErrorType.ErrorWaifu2x);
+                }
             }
+
+            Result.Dispose();
         }
 
         private void GetMinMaxHist(ref Mat Hist, int totalPixel, double LowCut, double HighCut, out int Min, out int Max)
@@ -682,7 +703,7 @@ namespace ScannedCardDenoiser
         }
 
         private Mat AutoLevel(Mat src, double LowCut, double HighCut)
-        {
+        {     
             int rows = src.Rows;
             int cols = src.Cols;
             int totalPixel = rows * cols;
@@ -698,17 +719,20 @@ namespace ScannedCardDenoiser
             MatType type = src.Type();
 
             int[] hdims = { 256 };
-            Rangef[] ranges = { new Rangef(0, 256) };
+            Rangef[] ranges = { new Rangef(0, 255) };
 
-            bool uniform = true;
-            bool accumulate = false;
-            Cv2.CalcHist(new Mat[] { rgb[2] }, new int[] { 0 }, null, HistRed, 1, hdims, ranges, uniform, accumulate);
-            Cv2.CalcHist(new Mat[] { rgb[1] }, new int[] { 0 }, null, HistGreen, 1, hdims, ranges, uniform, accumulate);
-            Cv2.CalcHist(new Mat[] { rgb[0] }, new int[] { 0 }, null, HistBlue, 1, hdims, ranges, uniform, accumulate);
+            CLAHE clahe = Cv2.CreateCLAHE();
+            clahe.Apply(rgb[2], rgb[2]);
+            clahe.Apply(rgb[1], rgb[1]);
+            clahe.Apply(rgb[0], rgb[0]);
 
-            int MinBlue = 0, MaxBlue = 0;
-            int MinRed = 0, MaxRed = 0;
-            int MinGreen = 0, MaxGreen = 0;
+            Cv2.CalcHist(new Mat[] { rgb[2] }, new int[] { 0 }, null, HistRed, 1, hdims, ranges);
+            Cv2.CalcHist(new Mat[] { rgb[1] }, new int[] { 0 }, null, HistGreen, 1, hdims, ranges);
+            Cv2.CalcHist(new Mat[] { rgb[0] }, new int[] { 0 }, null, HistBlue, 1, hdims, ranges);
+
+            int MinBlue = 0, MaxBlue = 255;            
+            int MinGreen = 0, MaxGreen = 255;
+            int MinRed = 0, MaxRed = 255;
 
             //Blue Channel
             GetMinMaxHist(ref HistBlue, totalPixel, LowCut, HighCut, out MinBlue, out MaxBlue);
@@ -856,18 +880,28 @@ namespace ScannedCardDenoiser
                 ps.Start();
                 ps.WaitForExit();
 
-                Image image = Image.FromFile(tmpFileName);
-                System.Drawing.Size imageSize = image.Size;
-                imageSize.Width = imageSize.Width / 2;
-                imageSize.Height = imageSize.Height / 2;
-                Bitmap newImage = new Bitmap(image, imageSize);
-                image.Dispose();
+                if (File.Exists(tmpFileName))
+                {
+                    Image image = Image.FromFile(tmpFileName);
+                    System.Drawing.Size imageSize = image.Size;
+                    if (imageSize.Width > tmpImage.Width)
+                        imageSize.Width = imageSize.Width / 2;
+                    if (imageSize.Height > tmpImage.Height)
+                        imageSize.Height = imageSize.Height / 2;
 
-                newImage.Save(tmpFileName, ImageFormat.Png);
+                    Bitmap newImage = new Bitmap(image, imageSize);
+                    image.Dispose();
 
-                tmpImage = Cv2.ImRead(tmpFileName);
+                    newImage.Save(tmpFileName, ImageFormat.Png);
 
-                File.Delete(tmpFileName);
+                    tmpImage = Cv2.ImRead(tmpFileName);
+
+                    File.Delete(tmpFileName);
+                }
+                else
+                {
+                    ShowWarning(EErrorType.ErrorWaifu2x);
+                }
             }
 
             Cv2.ImShow("Original", Cv2.ImRead(TB_Source.Text));
@@ -921,9 +955,14 @@ namespace ScannedCardDenoiser
             UpdateTBResize();
         }
 
-        private void ShowWarning()
+        private void ShowWarning(EErrorType Err = EErrorType.WrongProperty)
         {
-            System.Windows.Forms.MessageBox.Show("설정 값을 확인하세요.", "경고");
+            switch(Err)
+            {
+                case EErrorType.WrongProperty: System.Windows.Forms.MessageBox.Show("설정 값을 확인하세요.", "경고"); break;
+                case EErrorType.ErrorWaifu2x: System.Windows.Forms.MessageBox.Show("waifu2x 실행 실패", "경고"); break;
+            }
+            
         }
 
         private void CB_AutoAdjust_CheckedChanged(object sender, EventArgs e)
