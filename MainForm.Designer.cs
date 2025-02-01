@@ -91,6 +91,7 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.BTN_waifu2x = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.CB_Waifu2xTTA = new System.Windows.Forms.CheckBox();
             this.RB_WaifuPhoto = new System.Windows.Forms.RadioButton();
             this.RB_WaifuAnime = new System.Windows.Forms.RadioButton();
             this.RB_WaifuCunet = new System.Windows.Forms.RadioButton();
@@ -101,7 +102,6 @@
             this.RB_WaifuMed = new System.Windows.Forms.RadioButton();
             this.RB_WaifuLow = new System.Windows.Forms.RadioButton();
             this.Label_FileName = new System.Windows.Forms.Label();
-            this.CB_Waifu2xTTA = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -111,7 +111,7 @@
             // 
             // openFileDialog
             // 
-            this.openFileDialog.FileName = "openFilePath";
+            this.openFileDialog.Filter = "이미지|*.jpg;*.png;*.bmp";
             // 
             // BTN_OpenFile
             // 
@@ -731,7 +731,6 @@
             this.Label_Progress.Size = new System.Drawing.Size(60, 11);
             this.Label_Progress.TabIndex = 11;
             this.Label_Progress.Text = "000 / 1111";
-            this.Label_Progress.TextAlign = System.Drawing.ContentAlignment.BottomRight;
             this.Label_Progress.Visible = false;
             // 
             // BTN_Abort
@@ -801,6 +800,18 @@
             this.groupBox6.TabIndex = 3;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Model";
+            // 
+            // CB_Waifu2xTTA
+            // 
+            this.CB_Waifu2xTTA.AutoSize = true;
+            this.CB_Waifu2xTTA.Checked = true;
+            this.CB_Waifu2xTTA.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CB_Waifu2xTTA.Location = new System.Drawing.Point(156, 63);
+            this.CB_Waifu2xTTA.Name = "CB_Waifu2xTTA";
+            this.CB_Waifu2xTTA.Size = new System.Drawing.Size(88, 16);
+            this.CB_Waifu2xTTA.TabIndex = 1;
+            this.CB_Waifu2xTTA.Text = "TTA 활성화";
+            this.CB_Waifu2xTTA.UseVisualStyleBackColor = true;
             // 
             // RB_WaifuPhoto
             // 
@@ -911,18 +922,6 @@
             this.Label_FileName.TabIndex = 15;
             this.Label_FileName.Text = "filename.extention";
             this.Label_FileName.Visible = false;
-            // 
-            // CB_Waifu2xTTA
-            // 
-            this.CB_Waifu2xTTA.AutoSize = true;
-            this.CB_Waifu2xTTA.Checked = true;
-            this.CB_Waifu2xTTA.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CB_Waifu2xTTA.Location = new System.Drawing.Point(156, 63);
-            this.CB_Waifu2xTTA.Name = "CB_Waifu2xTTA";
-            this.CB_Waifu2xTTA.Size = new System.Drawing.Size(88, 16);
-            this.CB_Waifu2xTTA.TabIndex = 1;
-            this.CB_Waifu2xTTA.Text = "TTA 활성화";
-            this.CB_Waifu2xTTA.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 

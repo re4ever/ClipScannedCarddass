@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -9,7 +8,6 @@ using System.IO;
 using System.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
-using MS.WindowsAPICodePack.Internal;
 
 namespace ScannedCardDenoiser
 {
@@ -27,7 +25,7 @@ namespace ScannedCardDenoiser
         {
             InitializeComponent();
 
-            waifu2xExePath = System.IO.Path.Combine(Environment.CurrentDirectory, "waifu2x-ncnn-vulkan\\waifu2x-ncnn-vulkan.exe");
+            waifu2xExePath = Path.Combine(Environment.CurrentDirectory, "waifu2x-ncnn-vulkan\\waifu2x-ncnn-vulkan.exe");
             if (!File.Exists(waifu2xExePath))
             {
                 waifu2xExePath = null;
@@ -45,7 +43,10 @@ namespace ScannedCardDenoiser
         }
 
         private void BTN_OpenFile_Click(object sender, EventArgs e)
-        {
+        {            
+            if (TB_Source.Text.Length > 0)
+                openFileDialog.InitialDirectory = Path.GetDirectoryName(TB_Source.Text);
+
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 TB_Source.Clear();
@@ -58,6 +59,8 @@ namespace ScannedCardDenoiser
         {
             CommonOpenFileDialog dialog = new CommonOpenFileDialog();
             dialog.IsFolderPicker = true;
+            if (TB_Source.Text.Length > 0)
+                dialog.InitialDirectory = Path.GetDirectoryName(TB_Source.Text);
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -71,6 +74,8 @@ namespace ScannedCardDenoiser
         {
             CommonOpenFileDialog dialog = new CommonOpenFileDialog();
             dialog.IsFolderPicker = true;
+            if (TB_Target.Text.Length > 0)
+                dialog.InitialDirectory = Path.GetDirectoryName(TB_Target.Text);
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -339,20 +344,22 @@ namespace ScannedCardDenoiser
 
                 Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Edges.png"), EdgeImage);
 #endif
-                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 180, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 5, imageSize.Width / 100);
-                
-                EdgeImage.Dispose();
+                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 360, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 5, imageSize.Width / 100);
+                                
 #if DEBUG
                 Mat LineImage = new Mat();
-                Cv2.CopyTo(image, LineImage);
+                Cv2.CopyTo(EdgeImage, LineImage);
+                LineImage = LineImage.CvtColor(ColorConversionCodes.GRAY2RGB);
+
+                LineSegmentPoint SelectedLine = new LineSegmentPoint();
 #endif
+                EdgeImage.Dispose();
+
                 double maxSkewRad1 = 45 * Cv2.PI / 180;
                 double maxSkewRad2 = -45 * Cv2.PI / 180;
 
-                double weightedAngles = 0;
-                double weight = 0;
-
-                List<double> AdjustedAngles = new List<double>();
+                double LongestLineLength = 0;
+                double SelectedAngle = 0;
                 foreach (LineSegmentPoint Line in Lines)
                 {
                     double angle = Math.Atan2(Line.P2.Y - Line.P1.Y, Line.P2.X - Line.P1.X);
@@ -364,53 +371,50 @@ namespace ScannedCardDenoiser
                         else
                             angle = angle - Cv2.PI / 2;
                     }
-                    
-                    AdjustedAngles.Add(angle);
 
-                    double length = Line.P1.DistanceTo(Line.P2) - imageSize.Width / 5;
-                    length *= length;
-                    weight += length;
-                    weightedAngles += length * angle;
+                    double length = Line.P1.DistanceTo(Line.P2);
+                    if (LongestLineLength < length)
+                    {
+                        LongestLineLength = length;
+                        SelectedAngle = angle;
 #if DEBUG
-                    LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255), 3);
+                        SelectedLine = Line;
 #endif
-                }                
+                    }
 #if DEBUG
+                    LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255));
+#endif
+                }
+#if DEBUG
+
+                LineImage.Line(SelectedLine.P1, SelectedLine.P2, new Scalar(0, 0, 255), 3);
                 Cv2.ImShow("Lines", LineImage);
                 Cv2.WaitKey(0);
 
                 Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Lines.png"), LineImage);
+                LineImage.Dispose();
 #endif
 
-                List<double> filteredAngles = new List<double>();
-                double weightedMeanAngle = weightedAngles / weight;
-                double thresholdAngle = (5 * Cv2.PI / 180) * (5 * Cv2.PI / 180);
-                foreach (double angle in AdjustedAngles)
-                {
-                    if (thresholdAngle > (angle - weightedMeanAngle) * (angle - weightedMeanAngle))
-                    {
-                        filteredAngles.Add(angle);
-                    }
-                }
-
-                double rotAngle = filteredAngles.Count() > 0 ? filteredAngles.Average() * 180 /Cv2.PI : 0;
-
+                double rotAngle = SelectedAngle * 180 /Cv2.PI;
                 if (rotAngle != 0)
                 {
                     Mat RotMat = Cv2.GetRotationMatrix2D(new Point2f(imageSize.Width * 0.5f, imageSize.Height * 0.5f), rotAngle, 1.0);
-                    Cv2.WarpAffine(image, image, RotMat, new OpenCvSharp.Size(imageSize.Width, imageSize.Height), InterpolationFlags.Lanczos4, BorderTypes.Replicate);
+                    Cv2.WarpAffine(image, image, RotMat, new OpenCvSharp.Size(imageSize.Width, imageSize.Height), InterpolationFlags.Linear, BorderTypes.Replicate);
                 }
 
                 int Top = imageSize.Height; int Bottom = 0; int Left = imageSize.Width; int Right = 0;
 
                 Mat[] BinaryImages;                
                 Cv2.Split(image, out BinaryImages);
+
                 foreach (Mat BinaryImage in BinaryImages)
                 {
-                    Cv2.FastNlMeansDenoising(BinaryImage, BinaryImage);
+                    Cv2.GaussianBlur(BinaryImage, BinaryImage, new OpenCvSharp.Size(5, 5), 0);
                     Cv2.Canny(BinaryImage, BinaryImage, 100, 200);
-
                     Cv2.Threshold(BinaryImage, BinaryImage, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+
+                    Cv2.ImShow("BinaryImage", BinaryImage);
+                    Cv2.WaitKey(0);
 
                     for (int i = 0; i < imageSize.Width * imageSize.Height; ++i)
                     {
@@ -442,6 +446,7 @@ namespace ScannedCardDenoiser
                 Cv2.WaitKey(0);
 
                 Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Rect.png"), RectImage);
+                RectImage.Dispose();
 #endif
 
                 image = image.GetRectSubPix(new OpenCvSharp.Size(Right - Left, Bottom - Top), new OpenCvSharp.Point((Right + Left) * 0.5f, (Bottom + Top) * 0.5f));
@@ -451,8 +456,8 @@ namespace ScannedCardDenoiser
 
             bool bHorizontal = imageSize.Width > imageSize.Height;
 
-            int X = CB_ChangeSize.Checked ? Convert.ToInt32(TB_ResizeW.Text) : imageSize.Width;
-            int Y = CB_ChangeSize.Checked ? Convert.ToInt32(TB_ResizeH.Text) : imageSize.Height;
+            int X = CB_ChangeSize.Checked ? (bHorizontal ? Convert.ToInt32(TB_ResizeW.Text) : Convert.ToInt32(TB_ResizeH.Text)) : imageSize.Width;
+            int Y = CB_ChangeSize.Checked ? (bHorizontal ? Convert.ToInt32(TB_ResizeH.Text) : Convert.ToInt32(TB_ResizeW.Text)) : imageSize.Height;
 
             if (X * Y == 0)
                 return null;
@@ -635,10 +640,10 @@ namespace ScannedCardDenoiser
                 {
                     Image image = Image.FromFile(newFileName);
                     System.Drawing.Size imageSize = image.Size;
-                    if (imageSize.Width > Result.Width)
-                        imageSize.Width = imageSize.Width / 2;
-                    if (imageSize.Height > Result.Height)
-                        imageSize.Height = imageSize.Height / 2;
+                    if(imageSize.Width != Result.Width)
+                        imageSize.Width = Result.Width;
+                    if (imageSize.Height != Result.Height)
+                        imageSize.Height = Result.Height;
 
                     Bitmap newImage = new Bitmap(image, imageSize);
                     image.Dispose();
@@ -884,10 +889,10 @@ namespace ScannedCardDenoiser
                 {
                     Image image = Image.FromFile(tmpFileName);
                     System.Drawing.Size imageSize = image.Size;
-                    if (imageSize.Width > tmpImage.Width)
-                        imageSize.Width = imageSize.Width / 2;
-                    if (imageSize.Height > tmpImage.Height)
-                        imageSize.Height = imageSize.Height / 2;
+                    if (imageSize.Width != tmpImage.Width)
+                        imageSize.Width = tmpImage.Width;
+                    if (imageSize.Height != tmpImage.Height)
+                        imageSize.Height = tmpImage.Height;
 
                     Bitmap newImage = new Bitmap(image, imageSize);
                     image.Dispose();
