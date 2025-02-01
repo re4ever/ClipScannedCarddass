@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace ScannedCardDenoiser
 {
@@ -350,15 +351,16 @@ namespace ScannedCardDenoiser
                 Mat LineImage = new Mat();
                 Cv2.CopyTo(EdgeImage, LineImage);
                 LineImage = LineImage.CvtColor(ColorConversionCodes.GRAY2RGB);
-
-                LineSegmentPoint SelectedLine = new LineSegmentPoint();
 #endif
                 EdgeImage.Dispose();
 
                 double maxSkewRad1 = 45 * Cv2.PI / 180;
                 double maxSkewRad2 = -45 * Cv2.PI / 180;
 
-                double LongestLineLength = 0;
+                Dictionary<double, int> angleCounts = new Dictionary<double, int>();
+#if DEBUG
+                Dictionary<double, List<LineSegmentPoint>> angleLines = new Dictionary<double, List<LineSegmentPoint>>();
+#endif
                 double SelectedAngle = 0;
                 foreach (LineSegmentPoint Line in Lines)
                 {
@@ -372,22 +374,34 @@ namespace ScannedCardDenoiser
                             angle = angle - Cv2.PI / 2;
                     }
 
-                    double length = Line.P1.DistanceTo(Line.P2);
-                    if (LongestLineLength < length)
-                    {
-                        LongestLineLength = length;
-                        SelectedAngle = angle;
+                    angle = (int)(angle * 1000);
+                    angle /= 1000;
+                    if (angleCounts.ContainsKey(angle))
+                        angleCounts[angle]++;
+                    else 
+                        angleCounts.Add(angle, 1);
+
 #if DEBUG
-                        SelectedLine = Line;
-#endif
-                    }
-#if DEBUG
+                    if (angleLines.ContainsKey(angle))
+                        angleLines[angle].Add(Line);
+                    else
+                        angleLines.Add(angle, new List<LineSegmentPoint>() { Line });
+
                     LineImage.Line(Line.P1, Line.P2, new Scalar(255, 0, 255));
 #endif
                 }
-#if DEBUG
 
-                LineImage.Line(SelectedLine.P1, SelectedLine.P2, new Scalar(0, 0, 255), 3);
+                angleCounts.OrderByDescending(elem => elem.Value);
+
+                SelectedAngle = angleCounts.ElementAt(0).Key;
+
+#if DEBUG
+                List<LineSegmentPoint> SelectedLines = angleLines[SelectedAngle];
+                foreach (LineSegmentPoint Line in SelectedLines)
+                {
+                    LineImage.Line(Line.P1, Line.P2, new Scalar(0, 0, 255), 3);
+                }
+
                 Cv2.ImShow("Lines", LineImage);
                 Cv2.WaitKey(0);
 
