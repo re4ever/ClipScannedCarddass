@@ -413,9 +413,6 @@ namespace ScannedCardDenoiser
                     Cv2.Canny(BinaryImage, BinaryImage, 100, 200);
                     Cv2.Threshold(BinaryImage, BinaryImage, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
 
-                    Cv2.ImShow("BinaryImage", BinaryImage);
-                    Cv2.WaitKey(0);
-
                     for (int i = 0; i < imageSize.Width * imageSize.Height; ++i)
                     {
                         unsafe
