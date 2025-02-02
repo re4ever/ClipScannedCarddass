@@ -21,6 +21,7 @@ namespace ScannedCardDenoiser
     {
         private Thread th;
         string waifu2xExePath;
+        string[] sourceFiles;
 
         public MainForm()
         {
@@ -53,6 +54,7 @@ namespace ScannedCardDenoiser
                 TB_Source.Clear();
 
                 TB_Source.Text = openFileDialog.FileName;
+                sourceFiles = openFileDialog.FileNames;
             }
         }
 
@@ -249,18 +251,15 @@ namespace ScannedCardDenoiser
                 Directory.CreateDirectory(TB_Target.Text);
             }
 
-            bool bOneFile = false;
-            string srcDirectory;
+            bool bSelectedFiles = false;
             string[] files;
             if (File.Exists(TB_Source.Text))
             {
-                srcDirectory = TB_Source.Text.Remove(TB_Source.Text.LastIndexOf('\\'));
-                files = new string[] { TB_Source.Text };
-                bOneFile = true;
+                files = sourceFiles;
+                bSelectedFiles = true;
             }
             else if (Directory.Exists(TB_Source.Text))
             {
-                srcDirectory = TB_Source.Text;
                 if (CB_SubFolder.Checked)
                     files = Directory.GetFiles(TB_Source.Text, "*.*", SearchOption.AllDirectories);
                 else
@@ -274,6 +273,7 @@ namespace ScannedCardDenoiser
             Label_Progress.Invoke(new Action(() =>
             {
                 Label_Progress.Text = "0 / " + files.Length.ToString();
+                Label_Progress.Text += " ( 0.0s / 0.0s )";
                 Label_Progress.Visible = true;
             }));
 
@@ -282,11 +282,12 @@ namespace ScannedCardDenoiser
                 PB_Progress.Enabled = true;
             }));
 
+            int StartTick = Environment.TickCount;
             int DoneCount = 0;
             foreach (string filepath in files)
             {
                 string dstDirectory = TB_Target.Text + filepath.Substring(TB_Source.Text.Length);
-                if (!bOneFile)
+                if (!bSelectedFiles)
                     dstDirectory = dstDirectory.Remove(dstDirectory.LastIndexOf('\\'));
 
                 if (!Directory.Exists(dstDirectory))
@@ -297,9 +298,13 @@ namespace ScannedCardDenoiser
                 Process(filepath, dstDirectory);
                 DoneCount++;
 
+                int CurrentTick = Environment.TickCount;
+                double ElapsedTime = (CurrentTick - StartTick) * 0.001;
+                double ExpectTime = (ElapsedTime / DoneCount) * (files.Length);
                 Label_Progress.Invoke(new Action(() =>
                     {
                         Label_Progress.Text = DoneCount.ToString() + " / " + files.Length.ToString();
+                        Label_Progress.Text += " ( " + ElapsedTime.ToString("F1") + "s / " + ExpectTime.ToString("F1") + "s )";
                     }
                 ));
 
@@ -330,11 +335,19 @@ namespace ScannedCardDenoiser
             OpenCvSharp.Size imageSize = new OpenCvSharp.Size(image.Cols, image.Rows);
 
             if (CB_AutoAdjust.Checked)
-            {
-                Cv2.CvtColor(image, image, ColorConversionCodes.RGBA2RGB);
-
+            {                
                 Mat EdgeImage = new Mat();
+                Cv2.CvtColor(image, image, ColorConversionCodes.RGBA2RGB);
                 Cv2.CvtColor(image, EdgeImage, ColorConversionCodes.RGB2GRAY);
+
+                if (imageSize.Width > 400 || imageSize.Height > 400)
+                {
+                    if (imageSize.Width > image.Height)
+                        EdgeImage = EdgeImage.Resize(new OpenCvSharp.Size(400, 400 * imageSize.Height / imageSize.Width));
+                    else
+                        EdgeImage = EdgeImage.Resize(new OpenCvSharp.Size(400 * imageSize.Width / imageSize.Height, 400));
+                }
+                
                 Cv2.Threshold(EdgeImage, EdgeImage, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
                 Cv2.Canny(EdgeImage, EdgeImage, 10, 50);
 
@@ -345,7 +358,7 @@ namespace ScannedCardDenoiser
 
                 Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Edges.png"), EdgeImage);
 #endif
-                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 360, Convert.ToInt32(TB_AdjThreshold.Text), imageSize.Width / 5, imageSize.Width / 100);
+                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 360, Convert.ToInt32(TB_AdjThreshold.Text), 40, 4);
                                 
 #if DEBUG
                 Mat LineImage = new Mat();
@@ -393,7 +406,7 @@ namespace ScannedCardDenoiser
 
                 angleCounts.OrderByDescending(elem => elem.Value);
 
-                SelectedAngle = angleCounts.ElementAt(0).Key;
+                SelectedAngle = angleCounts.Count > 0 ? angleCounts.ElementAt(0).Key : 0;
 
 #if DEBUG
                 List<LineSegmentPoint> SelectedLines = angleLines[SelectedAngle];
@@ -427,22 +440,45 @@ namespace ScannedCardDenoiser
                     Cv2.Canny(BinaryImage, BinaryImage, 100, 200);
                     Cv2.Threshold(BinaryImage, BinaryImage, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
 
-                    for (int i = 0; i < imageSize.Width * imageSize.Height; ++i)
+                    unsafe
                     {
-                        unsafe
+                        // Top
+                        for (int i = 0; i < imageSize.Width * imageSize.Height; ++i)
                         {
                             if (*(byte*)IntPtr.Add(BinaryImage.Data, i).ToPointer() != 0)
                             {
-                                int HeightIdx = i / imageSize.Width;
-                                int WidthIdx = i % imageSize.Width;
-
-                                if (HeightIdx < Top) Top = HeightIdx;
-                                if (Bottom < HeightIdx) Bottom = HeightIdx;
-                                if (WidthIdx < Left) Left = WidthIdx;
-                                if (Right < WidthIdx) Right = WidthIdx;
+                                Top = i / imageSize.Width;
+                                break;
                             }
                         }
-                    }
+                        // Bottom
+                        for (int i = imageSize.Width * imageSize.Height - 1; i > Top; --i)
+                        {
+                            if (*(byte*)IntPtr.Add(BinaryImage.Data, i).ToPointer() != 0)
+                            {
+                                Bottom = i / imageSize.Width;
+                                break;
+                            }
+                        }
+
+                        for (int i = Top * imageSize.Width; i < imageSize.Width * Bottom; ++i)
+                        {
+                            int WidthIdx = i % imageSize.Width;
+                            if (Left <= WidthIdx && WidthIdx < Right)
+                            {
+                                i += Right - WidthIdx;
+                                continue;
+                            }
+
+                            if (*(byte*)IntPtr.Add(BinaryImage.Data, i).ToPointer() != 0)
+                            {
+                                if (WidthIdx < Left) 
+                                    Left = WidthIdx;
+                                if (Right < WidthIdx) 
+                                    Right = WidthIdx;
+                            }
+                        }
+                    }                    
 
                     BinaryImage.Dispose();
                 }

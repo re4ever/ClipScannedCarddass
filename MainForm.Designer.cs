@@ -112,6 +112,7 @@
             // openFileDialog
             // 
             this.openFileDialog.Filter = "이미지|*.jpg;*.png;*.bmp";
+            this.openFileDialog.Multiselect = true;
             // 
             // BTN_OpenFile
             // 
@@ -128,6 +129,7 @@
             this.TB_Source.Enabled = false;
             this.TB_Source.Location = new System.Drawing.Point(124, 32);
             this.TB_Source.Name = "TB_Source";
+            this.TB_Source.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.TB_Source.Size = new System.Drawing.Size(518, 21);
             this.TB_Source.TabIndex = 1;
             this.TB_Source.TextChanged += new System.EventHandler(this.TB_Source_TextChanged);
@@ -165,6 +167,7 @@
             this.TB_Target.Enabled = false;
             this.TB_Target.Location = new System.Drawing.Point(124, 78);
             this.TB_Target.Name = "TB_Target";
+            this.TB_Target.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.TB_Target.Size = new System.Drawing.Size(518, 21);
             this.TB_Target.TabIndex = 5;
             this.TB_Target.TextChanged += new System.EventHandler(this.TB_Target_TextChanged);
@@ -722,15 +725,16 @@
             // 
             // Label_Progress
             // 
-            this.Label_Progress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.Label_Progress.AutoSize = true;
             this.Label_Progress.BackColor = System.Drawing.Color.Transparent;
-            this.Label_Progress.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.Label_Progress.Location = new System.Drawing.Point(508, 410);
+            this.Label_Progress.Font = new System.Drawing.Font("굴림", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.Label_Progress.Location = new System.Drawing.Point(408, 411);
             this.Label_Progress.Name = "Label_Progress";
-            this.Label_Progress.Size = new System.Drawing.Size(60, 11);
+            this.Label_Progress.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.Label_Progress.Size = new System.Drawing.Size(165, 11);
             this.Label_Progress.TabIndex = 11;
-            this.Label_Progress.Text = "000 / 1111";
+            this.Label_Progress.Text = "000 / 1111 (0000.0s / 0000.0s)";
+            this.Label_Progress.TextAlign = System.Drawing.ContentAlignment.BottomRight;
             this.Label_Progress.Visible = false;
             // 
             // BTN_Abort
