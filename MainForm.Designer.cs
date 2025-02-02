@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.BTN_OpenFile = new System.Windows.Forms.Button();
             this.TB_Source = new System.Windows.Forms.TextBox();
@@ -102,6 +103,7 @@
             this.RB_WaifuMed = new System.Windows.Forms.RadioButton();
             this.RB_WaifuLow = new System.Windows.Forms.RadioButton();
             this.Label_FileName = new System.Windows.Forms.Label();
+            this.CB_Overwrite = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -281,7 +283,7 @@
             this.TB_DenoiseSSize.Name = "TB_DenoiseSSize";
             this.TB_DenoiseSSize.Size = new System.Drawing.Size(45, 21);
             this.TB_DenoiseSSize.TabIndex = 7;
-            this.TB_DenoiseSSize.Text = "21";
+            this.TB_DenoiseSSize.Text = "3";
             this.TB_DenoiseSSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_DenoiseSSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -291,7 +293,7 @@
             this.TB_DenoiseTSize.Name = "TB_DenoiseTSize";
             this.TB_DenoiseTSize.Size = new System.Drawing.Size(45, 21);
             this.TB_DenoiseTSize.TabIndex = 7;
-            this.TB_DenoiseTSize.Text = "27";
+            this.TB_DenoiseTSize.Text = "21";
             this.TB_DenoiseTSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_DenoiseTSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -311,7 +313,7 @@
             this.TB_DenoiseH.Name = "TB_DenoiseH";
             this.TB_DenoiseH.Size = new System.Drawing.Size(21, 21);
             this.TB_DenoiseH.TabIndex = 7;
-            this.TB_DenoiseH.Text = "3";
+            this.TB_DenoiseH.Text = "10";
             this.TB_DenoiseH.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_DenoiseH.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -519,6 +521,7 @@
             // RB_ResizeTradingCard
             // 
             this.RB_ResizeTradingCard.AutoSize = true;
+            this.RB_ResizeTradingCard.Enabled = false;
             this.RB_ResizeTradingCard.Location = new System.Drawing.Point(34, 135);
             this.RB_ResizeTradingCard.Name = "RB_ResizeTradingCard";
             this.RB_ResizeTradingCard.Size = new System.Drawing.Size(154, 16);
@@ -531,6 +534,7 @@
             // 
             this.RB_ResizeCarddass.AutoSize = true;
             this.RB_ResizeCarddass.Checked = true;
+            this.RB_ResizeCarddass.Enabled = false;
             this.RB_ResizeCarddass.Location = new System.Drawing.Point(34, 113);
             this.RB_ResizeCarddass.Name = "RB_ResizeCarddass";
             this.RB_ResizeCarddass.Size = new System.Drawing.Size(139, 16);
@@ -543,6 +547,7 @@
             // RB_Resize4x6
             // 
             this.RB_Resize4x6.AutoSize = true;
+            this.RB_Resize4x6.Enabled = false;
             this.RB_Resize4x6.Location = new System.Drawing.Point(34, 91);
             this.RB_Resize4x6.Name = "RB_Resize4x6";
             this.RB_Resize4x6.Size = new System.Drawing.Size(175, 16);
@@ -554,6 +559,7 @@
             // RB_ResizeCustom
             // 
             this.RB_ResizeCustom.AutoSize = true;
+            this.RB_ResizeCustom.Enabled = false;
             this.RB_ResizeCustom.Location = new System.Drawing.Point(34, 69);
             this.RB_ResizeCustom.Name = "RB_ResizeCustom";
             this.RB_ResizeCustom.Size = new System.Drawing.Size(67, 16);
@@ -573,6 +579,7 @@
             // 
             // TB_ResizeH
             // 
+            this.TB_ResizeH.Enabled = false;
             this.TB_ResizeH.Location = new System.Drawing.Point(115, 42);
             this.TB_ResizeH.Name = "TB_ResizeH";
             this.TB_ResizeH.Size = new System.Drawing.Size(37, 21);
@@ -582,6 +589,7 @@
             // 
             // TB_ResizeW
             // 
+            this.TB_ResizeW.Enabled = false;
             this.TB_ResizeW.Location = new System.Drawing.Point(53, 42);
             this.TB_ResizeW.Name = "TB_ResizeW";
             this.TB_ResizeW.Size = new System.Drawing.Size(41, 21);
@@ -641,7 +649,7 @@
             this.TB_ClipLeft.Name = "TB_ClipLeft";
             this.TB_ClipLeft.Size = new System.Drawing.Size(30, 21);
             this.TB_ClipLeft.TabIndex = 4;
-            this.TB_ClipLeft.Text = "5";
+            this.TB_ClipLeft.Text = "2";
             this.TB_ClipLeft.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_ClipLeft.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -681,7 +689,7 @@
             this.TB_ClipBottom.Name = "TB_ClipBottom";
             this.TB_ClipBottom.Size = new System.Drawing.Size(30, 21);
             this.TB_ClipBottom.TabIndex = 4;
-            this.TB_ClipBottom.Text = "5";
+            this.TB_ClipBottom.Text = "2";
             this.TB_ClipBottom.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_ClipBottom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -701,7 +709,7 @@
             this.TB_ClipRight.Name = "TB_ClipRight";
             this.TB_ClipRight.Size = new System.Drawing.Size(30, 21);
             this.TB_ClipRight.TabIndex = 4;
-            this.TB_ClipRight.Text = "5";
+            this.TB_ClipRight.Text = "2";
             this.TB_ClipRight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_ClipRight.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -711,7 +719,7 @@
             this.TB_ClipTop.Name = "TB_ClipTop";
             this.TB_ClipTop.Size = new System.Drawing.Size(30, 21);
             this.TB_ClipTop.TabIndex = 4;
-            this.TB_ClipTop.Text = "5";
+            this.TB_ClipTop.Text = "2";
             this.TB_ClipTop.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.TB_ClipTop.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TB_OnlyDigit_KeyPressed);
             // 
@@ -751,11 +759,11 @@
             // CB_SubFolder
             // 
             this.CB_SubFolder.AutoSize = true;
-            this.CB_SubFolder.Location = new System.Drawing.Point(124, 56);
+            this.CB_SubFolder.Location = new System.Drawing.Point(673, 59);
             this.CB_SubFolder.Name = "CB_SubFolder";
-            this.CB_SubFolder.Size = new System.Drawing.Size(104, 16);
+            this.CB_SubFolder.Size = new System.Drawing.Size(77, 16);
             this.CB_SubFolder.TabIndex = 12;
-            this.CB_SubFolder.Text = "하위 폴더 포함";
+            this.CB_SubFolder.Text = "Subfolder";
             this.CB_SubFolder.UseVisualStyleBackColor = true;
             // 
             // BTN_ShowPreview
@@ -927,11 +935,22 @@
             this.Label_FileName.Text = "filename.extention";
             this.Label_FileName.Visible = false;
             // 
+            // CB_Overwrite
+            // 
+            this.CB_Overwrite.AutoSize = true;
+            this.CB_Overwrite.Location = new System.Drawing.Point(574, 59);
+            this.CB_Overwrite.Name = "CB_Overwrite";
+            this.CB_Overwrite.Size = new System.Drawing.Size(77, 16);
+            this.CB_Overwrite.TabIndex = 16;
+            this.CB_Overwrite.Text = "Overwrite";
+            this.CB_Overwrite.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 452);
+            this.Controls.Add(this.CB_Overwrite);
             this.Controls.Add(this.Label_FileName);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.BTN_ShowPreview);
@@ -949,6 +968,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.TB_Source);
             this.Controls.Add(this.BTN_OpenFile);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "Scanned Card Denoiser";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -1043,6 +1063,7 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.CheckBox CB_Waifu2xTTA;
+        private System.Windows.Forms.CheckBox CB_Overwrite;
     }
 }
 

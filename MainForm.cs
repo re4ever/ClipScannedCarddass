@@ -96,10 +96,10 @@ namespace ScannedCardDenoiser
 
         private void BTN_DenoiseDefault_Click(object sender, EventArgs e)
         {
-            TB_DenoiseH.Text = "3";
+            TB_DenoiseH.Text = "10";
             TB_DenoiseHColor.Text = "3";
-            TB_DenoiseTSize.Text = "27";
-            TB_DenoiseSSize.Text = "21";
+            TB_DenoiseTSize.Text = "21";
+            TB_DenoiseSSize.Text = "3";
         }
 
         private void CB_AutoLevel_CheckedChanged(object sender, EventArgs e)
@@ -115,7 +115,7 @@ namespace ScannedCardDenoiser
             TB_DenoiseHColor.Enabled = CB_DenoiseColor.Checked;
             TB_DenoiseTSize.Enabled = CB_DenoiseColor.Checked;
             TB_DenoiseSSize.Enabled = CB_DenoiseColor.Checked;
-            BTN_AutoLevelDefault.Enabled = CB_AutoLevel.Checked;
+            BTN_DenoiseDefault.Enabled = CB_DenoiseColor.Checked;
         }
 
         private void CB_Clip_CheckedChanged(object sender, EventArgs e)
@@ -270,6 +270,24 @@ namespace ScannedCardDenoiser
                 files = new string[] { };
             }
 
+            if (!CB_Overwrite.Checked)
+            {
+                List<string> newFiles = new List<string>();
+                foreach (string filepath in files)
+                {
+                    string dstDirectory = TB_Target.Text + filepath.Substring(TB_Source.Text.Length);
+                    if (!bSelectedFiles)
+                        dstDirectory = dstDirectory.Remove(dstDirectory.LastIndexOf('\\'));
+
+                    string newFileName = dstDirectory + '\\' + filepath.Split('\\').Last().Split('.')[0] + ".png";
+                    if (!File.Exists(newFileName))
+                    {
+                        newFiles.Add(filepath);
+                    }
+                }
+                files = newFiles.ToArray();
+            }
+
             Label_Progress.Invoke(new Action(() =>
             {
                 Label_Progress.Text = "0 / " + files.Length.ToString();
@@ -339,14 +357,6 @@ namespace ScannedCardDenoiser
                 Mat EdgeImage = new Mat();
                 Cv2.CvtColor(image, image, ColorConversionCodes.RGBA2RGB);
                 Cv2.CvtColor(image, EdgeImage, ColorConversionCodes.RGB2GRAY);
-
-                if (imageSize.Width > 400 || imageSize.Height > 400)
-                {
-                    if (imageSize.Width > image.Height)
-                        EdgeImage = EdgeImage.Resize(new OpenCvSharp.Size(400, 400 * imageSize.Height / imageSize.Width));
-                    else
-                        EdgeImage = EdgeImage.Resize(new OpenCvSharp.Size(400 * imageSize.Width / imageSize.Height, 400));
-                }
                 
                 Cv2.Threshold(EdgeImage, EdgeImage, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
                 Cv2.Canny(EdgeImage, EdgeImage, 10, 50);
@@ -358,7 +368,8 @@ namespace ScannedCardDenoiser
 
                 Cv2.ImWrite(Path.Combine(Environment.CurrentDirectory, newFileName + "_Edges.png"), EdgeImage);
 #endif
-                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 360, Convert.ToInt32(TB_AdjThreshold.Text), 40, 4);
+                double LineLength = (EdgeImage.Width > EdgeImage.Height ? EdgeImage.Width : EdgeImage.Height) * 0.1;
+                LineSegmentPoint[] Lines = Cv2.HoughLinesP(EdgeImage, 0.5, Cv2.PI / 360, Convert.ToInt32(TB_AdjThreshold.Text), LineLength, LineLength * 0.1);
                                 
 #if DEBUG
                 Mat LineImage = new Mat();
@@ -969,6 +980,7 @@ namespace ScannedCardDenoiser
             RB_WaifuMed.Enabled = CB_waifu2x.Checked;
             RB_WaifuHigh.Enabled = CB_waifu2x.Checked;
             RB_WaifuHighest.Enabled = CB_waifu2x.Checked;
+            CB_Waifu2xTTA.Enabled = CB_waifu2x.Checked;
         }
 
         private void button1_Click(object sender, EventArgs e)
